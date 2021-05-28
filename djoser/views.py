@@ -176,131 +176,131 @@ class UserViewSet(viewsets.ModelViewSet):
         elif request.method == "DELETE":
             return self.destroy(request, *args, **kwargs)
 
-    @action(["post"], detail=False)
-    def activation(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.user
-        user.is_active = True
-        user.save()
+    # @action(["post"], detail=False)
+    # def activation(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     user = serializer.user
+    #     user.is_active = True
+    #     user.save()
 
-        signals.user_activated.send(
-            sender=self.__class__, user=user, request=self.request
-        )
+    #     signals.user_activated.send(
+    #         sender=self.__class__, user=user, request=self.request
+    #     )
 
-        if settings.SEND_CONFIRMATION_EMAIL:
-            context = {"user": user}
-            to = [get_user_email(user)]
-            settings.EMAIL.confirmation(self.request, context).send(to)
+    #     if settings.SEND_CONFIRMATION_EMAIL:
+    #         context = {"user": user}
+    #         to = [get_user_email(user)]
+    #         settings.EMAIL.confirmation(self.request, context).send(to)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(["post"], detail=False)
-    def resend_activation(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.get_user(is_active=False)
+    # @action(["post"], detail=False)
+    # def resend_activation(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     user = serializer.get_user(is_active=False)
 
-        if not settings.SEND_ACTIVATION_EMAIL or not user:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+    #     if not settings.SEND_ACTIVATION_EMAIL or not user:
+    #         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        context = {"user": user}
-        to = [get_user_email(user)]
-        settings.EMAIL.activation(self.request, context).send(to)
+    #     context = {"user": user}
+    #     to = [get_user_email(user)]
+    #     settings.EMAIL.activation(self.request, context).send(to)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(["post"], detail=False)
-    def set_password(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    # @action(["post"], detail=False)
+    # def set_password(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
 
-        self.request.user.set_password(serializer.data["new_password"])
-        self.request.user.save()
+    #     self.request.user.set_password(serializer.data["new_password"])
+    #     self.request.user.save()
 
-        if settings.PASSWORD_CHANGED_EMAIL_CONFIRMATION:
-            context = {"user": self.request.user}
-            to = [get_user_email(self.request.user)]
-            settings.EMAIL.password_changed_confirmation(self.request, context).send(to)
+    #     if settings.PASSWORD_CHANGED_EMAIL_CONFIRMATION:
+    #         context = {"user": self.request.user}
+    #         to = [get_user_email(self.request.user)]
+    #         settings.EMAIL.password_changed_confirmation(self.request, context).send(to)
 
-        if settings.LOGOUT_ON_PASSWORD_CHANGE:
-            utils.logout_user(self.request)
-        elif settings.CREATE_SESSION_ON_LOGIN:
-            update_session_auth_hash(self.request, self.request.user)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    #     if settings.LOGOUT_ON_PASSWORD_CHANGE:
+    #         utils.logout_user(self.request)
+    #     elif settings.CREATE_SESSION_ON_LOGIN:
+    #         update_session_auth_hash(self.request, self.request.user)
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(["post"], detail=False)
-    def reset_password(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.get_user()
+    # @action(["post"], detail=False)
+    # def reset_password(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     user = serializer.get_user()
 
-        if user:
-            context = {"user": user}
-            to = [get_user_email(user)]
-            settings.EMAIL.password_reset(self.request, context).send(to)
+    #     if user:
+    #         context = {"user": user}
+    #         to = [get_user_email(user)]
+    #         settings.EMAIL.password_reset(self.request, context).send(to)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(["post"], detail=False)
-    def reset_password_confirm(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    # @action(["post"], detail=False)
+    # def reset_password_confirm(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
 
-        serializer.user.set_password(serializer.data["new_password"])
-        if hasattr(serializer.user, "last_login"):
-            serializer.user.last_login = now()
-        serializer.user.save()
+    #     serializer.user.set_password(serializer.data["new_password"])
+    #     if hasattr(serializer.user, "last_login"):
+    #         serializer.user.last_login = now()
+    #     serializer.user.save()
 
-        if settings.PASSWORD_CHANGED_EMAIL_CONFIRMATION:
-            context = {"user": serializer.user}
-            to = [get_user_email(serializer.user)]
-            settings.EMAIL.password_changed_confirmation(self.request, context).send(to)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    #     if settings.PASSWORD_CHANGED_EMAIL_CONFIRMATION:
+    #         context = {"user": serializer.user}
+    #         to = [get_user_email(serializer.user)]
+    #         settings.EMAIL.password_changed_confirmation(self.request, context).send(to)
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(["post"], detail=False, url_path="set_{}".format(User.USERNAME_FIELD))
-    def set_username(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = self.request.user
-        new_username = serializer.data["new_" + User.USERNAME_FIELD]
+    # @action(["post"], detail=False, url_path="set_{}".format(User.USERNAME_FIELD))
+    # def set_username(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     user = self.request.user
+    #     new_username = serializer.data["new_" + User.USERNAME_FIELD]
 
-        setattr(user, User.USERNAME_FIELD, new_username)
-        user.save()
-        if settings.USERNAME_CHANGED_EMAIL_CONFIRMATION:
-            context = {"user": user}
-            to = [get_user_email(user)]
-            settings.EMAIL.username_changed_confirmation(self.request, context).send(to)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    #     setattr(user, User.USERNAME_FIELD, new_username)
+    #     user.save()
+    #     if settings.USERNAME_CHANGED_EMAIL_CONFIRMATION:
+    #         context = {"user": user}
+    #         to = [get_user_email(user)]
+    #         settings.EMAIL.username_changed_confirmation(self.request, context).send(to)
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(["post"], detail=False, url_path="reset_{}".format(User.USERNAME_FIELD))
-    def reset_username(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.get_user()
+    # @action(["post"], detail=False, url_path="reset_{}".format(User.USERNAME_FIELD))
+    # def reset_username(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     user = serializer.get_user()
 
-        if user:
-            context = {"user": user}
-            to = [get_user_email(user)]
-            settings.EMAIL.username_reset(self.request, context).send(to)
+    #     if user:
+    #         context = {"user": user}
+    #         to = [get_user_email(user)]
+    #         settings.EMAIL.username_reset(self.request, context).send(to)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(
-        ["post"], detail=False, url_path="reset_{}_confirm".format(User.USERNAME_FIELD)
-    )
-    def reset_username_confirm(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        new_username = serializer.data["new_" + User.USERNAME_FIELD]
+    # @action(
+    #     ["post"], detail=False, url_path="reset_{}_confirm".format(User.USERNAME_FIELD)
+    # )
+    # def reset_username_confirm(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     new_username = serializer.data["new_" + User.USERNAME_FIELD]
 
-        setattr(serializer.user, User.USERNAME_FIELD, new_username)
-        if hasattr(serializer.user, "last_login"):
-            serializer.user.last_login = now()
-        serializer.user.save()
+    #     setattr(serializer.user, User.USERNAME_FIELD, new_username)
+    #     if hasattr(serializer.user, "last_login"):
+    #         serializer.user.last_login = now()
+    #     serializer.user.save()
 
-        if settings.USERNAME_CHANGED_EMAIL_CONFIRMATION:
-            context = {"user": serializer.user}
-            to = [get_user_email(serializer.user)]
-            settings.EMAIL.username_changed_confirmation(self.request, context).send(to)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    #     if settings.USERNAME_CHANGED_EMAIL_CONFIRMATION:
+    #         context = {"user": serializer.user}
+    #         to = [get_user_email(serializer.user)]
+    #         settings.EMAIL.username_changed_confirmation(self.request, context).send(to)
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
